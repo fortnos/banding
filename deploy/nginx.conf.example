@@ -1,0 +1,23 @@
+# Contoh konfigurasi Nginx untuk VPS (letakkan di /etc/nginx/sites-available/banding)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name banding.example.com;
+
+    root /var/www/banding/public;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+
+    # Blokir akses ke file sensitif
+    location ~ /\.(env|git|htaccess|htpasswd) { deny all; }
+
+    location ~ /\.(?!well-known) { deny all; }
+}

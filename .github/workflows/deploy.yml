@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: PHP Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Lint semua file PHP
+        run: |
+          set -e
+          files=$(find . -name '*.php' -not -path './vendor/*')
+          if [ -n "$files" ]; then
+            for f in $files; do
+              php -l "$f"
+            done
+          fi
+
+  deploy:
+    name: Deploy ke VPS
+    needs: lint
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via rsync over SSH
+        uses: easingthemes/ssh-deploy@v5.0.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+          remote-user: ${{ secrets.VPS_USER }}
+          remote-host: ${{ secrets.VPS_HOST }}
+          remote-path: ${{ secrets.VPS_PATH }}
+          rsync-options: >-
+            --archive --compress
+            --exclude='.git*'
+            --exclude='.env'
+            --exclude='.github'
+            --exclude='deploy/*.conf'
+            --exclude='scripts/migrate.php'
