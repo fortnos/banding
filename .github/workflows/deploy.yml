@@ -29,7 +29,9 @@ jobs:
     name: Deploy ke VPS
     needs: lint
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # Dinonaktifkan sementara: menunggu VPS tersedia.
+    # Aktifkan dengan mengganti menjadi: if: github.ref == 'refs/heads/main'
+    if: false
     steps:
       - uses: actions/checkout@v4
 
